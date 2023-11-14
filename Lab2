@@ -1,0 +1,40 @@
+using SendGrid;
+using SendGrid.Helpers.Mail;
+using System;
+using System.Threading.Tasks;
+
+namespace НазваПоточного.Services
+{
+    public class EmailService : IEmailSender
+    {
+        private readonly string _sendGridApiKey;
+
+        public EmailService(string sendGridApiKey)
+        {
+            _sendGridApiKey = sendGridApiKey;
+        }
+
+        public void SendEmail(string to, string subject, string body)
+        {
+            Execute(to, subject, body).Wait();
+        }
+
+        private async Task Execute(string to, string subject, string body)
+        {
+            var client = new SendGridClient(_sendGridApiKey);
+            var msg = new SendGridMessage()
+            {
+                From = new EmailAddress("sender@example.com", "Sender Name"),
+                Subject = subject,
+                PlainTextContent = body,
+                HtmlContent = body
+            };
+            msg.AddTo(new EmailAddress(to));
+
+            var response = await client.SendEmailAsync(msg);
+
+            Console.WriteLine($"Email sent to: {to}\nSubject: {subject}\nBody: {body}");
+            Console.WriteLine($"SendGrid Response: {response.StatusCode}");
+        }
+    }
+}
